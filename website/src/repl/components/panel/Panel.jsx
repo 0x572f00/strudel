@@ -1,5 +1,6 @@
 import { Bars3Icon, PlayIcon, StopIcon, XMarkIcon } from '@heroicons/react/16/solid';
 import cx from '@src/cx.mjs';
+import useEvent from '@src/useEvent.mjs';
 import { StrudelIcon } from '@src/repl/components/icons/StrudelIcon';
 import { useSettings, setIsZen, setIsPanelOpened, setActiveFooter as setTab } from '../../../settings.mjs';
 import '../../Repl.css';
@@ -43,74 +44,7 @@ export function LogoButton({ context, isEmbedded }) {
 }
 
 export function MainPanel({ context, isEmbedded = false, className }) {
-  const { isZen, isButtonRowHidden, fontFamily } = useSettings();
-  let loc = window.location;
-  let ver = 'unofficial';
-  let hot = false;
-  let b = loc.hostname.match(/^(.+)\.(strudel)/);
-  if (/(strudel.cc$)/.test(loc.hostname)) {
-    // if there's no text before 'strudel', it's warm, otherwise use the text before strudel
-    ver = b ? b[1] : 'warm';
-  } else {
-    // match both versions of localhost
-    if (/(localhost)|(127.0.0.1)/.test(loc.hostname)) ver = 'dev';
-  }
-  let pr = ver.match(/pr-([0-9]+)/);
-  if (pr) {
-    pr = pr[1];
-    ver = `hot: ${pr}`;
-    hot = true;
-    pr = `https://codeberg.org/uzu/strudel/pulls/${pr}`;
-  }
-
-  return (
-    <nav
-      id="header"
-      className={cx(
-        'flex-none text-black z-[100] text-sm select-none min-h-10 max-h-10',
-        !isZen && !isEmbedded && 'border-b border-muted bg-lineHighlight',
-        isZen ? 'h-12 w-8 fixed top-0 left-0' : '',
-        'flex items-center',
-        className,
-      )}
-      style={{ fontFamily }}
-    >
-      <div className={cx('flex w-full justify-between')}>
-        <div className="px-3 py-1 flex space-x-2 select-none">
-          <h1
-            onClick={() => {
-              if (isEmbedded) window.open(window.location.href.replace('embed', ''));
-            }}
-            className={cx(
-              isEmbedded ? 'text-l cursor-pointer' : 'text-xl',
-              'text-foreground font-bold flex space-x-2 items-center',
-            )}
-          >
-            <LogoButton context={context} isEmbedded={isEmbedded} />
-            {!isZen && (
-              <div className="space-x-2 flex items-baseline">
-                <span className="hidden sm:block">strudel</span>
-                <span className="text-sm font-medium hidden sm:block">REPL</span>
-                {!hot ? (
-                  <span className="text-sm font-medium hidden sm:block">({ver})</span>
-                ) : (
-                  <a className="hover:opacity-50" href={pr} target="_blank">
-                    <span className="text-sm font-medium hidden sm:block">({ver})</span>
-                  </a>
-                )}
-              </div>
-            )}
-          </h1>
-        </div>
-        {!isZen && (
-          <div className="flex grow justify-end">
-            {!isButtonRowHidden && <MainMenu isEmbedded={isEmbedded} context={context} />}
-            <PanelToggle isEmbedded={isEmbedded} isZen={isZen} />
-          </div>
-        )}
-      </div>
-    </nav>
-  );
+  return null;
 }
 
 export function Footer({ context, isEmbedded = false }) {
@@ -123,7 +57,42 @@ export function Footer({ context, isEmbedded = false }) {
 
 function MainMenu({ context, isEmbedded = false, className }) {
   const { started, pending, isDirty, activeCode, handleTogglePlay, handleEvaluate, handleShare } = context;
-  const { isCSSAnimationDisabled } = useSettings();
+  const { isCSSAnimationDisabled, isPanelOpen, isZen } = useSettings();
+
+  useEvent('keydown', (event) => {
+    const target = event.target;
+    const isEditable =
+      target instanceof HTMLElement &&
+      (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+    if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isEditable) {
+      return;
+    }
+
+    switch (event.key.toLowerCase()) {
+      case 'p':
+        event.preventDefault();
+        handleTogglePlay();
+        break;
+      case 'u':
+        event.preventDefault();
+        handleEvaluate();
+        break;
+      case 's':
+        if (!isEmbedded) {
+          event.preventDefault();
+          handleShare();
+        }
+        break;
+      case 'm':
+        if (!isEmbedded && !isZen) {
+          event.preventDefault();
+          setIsPanelOpened(!isPanelOpen);
+        }
+        break;
+      default:
+    }
+  });
+
   return (
     <div className={cx('flex text-sm max-w-full shrink-0 overflow-hidden text-foreground px-2 h-10', className)}>
       <button
@@ -151,6 +120,11 @@ function MainMenu({ context, isEmbedded = false, className }) {
         >
           <span>share</span>
         </button>
+      )}
+      {!isEmbedded && (
+        <div className="hidden xl:flex items-center px-2 opacity-80 text-xs">
+          HOTKEYS: alt+p play/pause, alt+u update, alt+s share, alt+m menu
+        </div>
       )}
       {!isEmbedded && (
         <a
@@ -245,7 +219,7 @@ if (TAURI) {
 function PanelNav({ children, className, ...props }) {
   const settings = useSettings();
   return (
-    <nav
+    <div
       onClick={() => {
         if (!settings.isPanelOpen) {
           setIsPanelOpened(true);
@@ -256,7 +230,7 @@ function PanelNav({ children, className, ...props }) {
       {...props}
     >
       {children}
-    </nav>
+    </div>
   );
 }
 
