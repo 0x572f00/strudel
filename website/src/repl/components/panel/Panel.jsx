@@ -64,8 +64,7 @@ function MainMenu({ context, isEmbedded = false, className }) {
     const isEditable =
       target instanceof HTMLElement &&
       (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
-    const isAltGraph = event.getModifierState?.('AltGraph') ?? false;
-    if (!event.altKey || (event.ctrlKey && !isAltGraph) || event.metaKey || event.shiftKey || isEditable) {
+    if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isEditable) {
       return;
     }
 
