@@ -64,25 +64,32 @@ function MainMenu({ context, isEmbedded = false, className }) {
     const isEditable =
       target instanceof HTMLElement &&
       (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
-    if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isEditable) {
+    const isAltGraph = event.getModifierState?.('AltGraph') ?? false;
+    if (!event.altKey || (event.ctrlKey && !isAltGraph) || event.metaKey || event.shiftKey || isEditable) {
       return;
     }
 
-    switch (event.key.toLowerCase()) {
+    const key = event.code || event.key.toLowerCase();
+
+    switch (key) {
+      case 'KeyP':
       case 'p':
         event.preventDefault();
         handleTogglePlay();
         break;
+      case 'KeyU':
       case 'u':
         event.preventDefault();
         handleEvaluate();
         break;
+      case 'KeyS':
       case 's':
         if (!isEmbedded) {
           event.preventDefault();
           handleShare();
         }
         break;
+      case 'KeyM':
       case 'm':
         if (!isEmbedded && !isZen) {
           event.preventDefault();
