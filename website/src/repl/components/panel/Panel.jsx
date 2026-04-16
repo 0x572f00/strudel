@@ -59,45 +59,72 @@ function MainMenu({ context, isEmbedded = false, className }) {
   const { started, pending, isDirty, activeCode, handleTogglePlay, handleEvaluate, handleShare } = context;
   const { isCSSAnimationDisabled, isPanelOpen, isZen } = useSettings();
 
-  useEvent('keydown', (event) => {
-    const target = event.target;
-    const isEditable =
-      target instanceof HTMLElement &&
-      (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
-    if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isEditable) {
-      return;
-    }
+  useEvent(
+    'keydown',
+    (event) => {
+      const hotkeyPayload = {
+        key: event.key,
+        code: event.code,
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        shiftKey: event.shiftKey,
+        defaultPrevented: event.defaultPrevented,
+      };
+      console.log('[Panel Hotkeys] keydown:', hotkeyPayload);
 
-    const key = event.code || event.key.toLowerCase();
+      const target = event.target;
+      const isEditable =
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+      if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isEditable) {
+        console.log('[Panel Hotkeys] skipped:', {
+          reason: {
+            missingAlt: !event.altKey,
+            hasCtrl: event.ctrlKey,
+            hasMeta: event.metaKey,
+            hasShift: event.shiftKey,
+            isEditable,
+          },
+          ...hotkeyPayload,
+        });
+        return;
+      }
 
-    switch (key) {
-      case 'KeyP':
-      case 'p':
-        event.preventDefault();
-        handleTogglePlay();
-        break;
-      case 'KeyU':
-      case 'u':
-        event.preventDefault();
-        handleEvaluate();
-        break;
-      case 'KeyS':
-      case 's':
-        if (!isEmbedded) {
+      const key = event.code || event.key.toLowerCase();
+      console.log('[Panel Hotkeys] matching key:', key);
+
+      switch (key) {
+        case 'KeyP':
+        case 'p':
           event.preventDefault();
-          handleShare();
-        }
-        break;
-      case 'KeyM':
-      case 'm':
-        if (!isEmbedded && !isZen) {
+          handleTogglePlay();
+          break;
+        case 'KeyU':
+        case 'u':
           event.preventDefault();
-          setIsPanelOpened(!isPanelOpen);
-        }
-        break;
-      default:
-    }
-  });
+          handleEvaluate();
+          break;
+        case 'KeyS':
+        case 's':
+          if (!isEmbedded) {
+            event.preventDefault();
+            handleShare();
+          }
+          break;
+        case 'KeyM':
+        case 'm':
+          if (!isEmbedded && !isZen) {
+            event.preventDefault();
+            setIsPanelOpened(!isPanelOpen);
+          }
+          break;
+        default:
+          console.log('[Panel Hotkeys] no handler for key:', key);
+      }
+    },
+    true,
+  );
 
   return (
     <div className={cx('flex text-sm max-w-full shrink-0 overflow-hidden text-foreground px-2 h-10', className)}>
