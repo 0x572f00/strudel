@@ -1,5 +1,6 @@
 import { Bars3Icon, PlayIcon, StopIcon, XMarkIcon } from '@heroicons/react/16/solid';
 import cx from '@src/cx.mjs';
+import useEvent from '@src/useEvent.mjs';
 import { StrudelIcon } from '@src/repl/components/icons/StrudelIcon';
 import { useSettings, setIsZen, setIsPanelOpened, setActiveFooter as setTab } from '../../../settings.mjs';
 import '../../Repl.css';
@@ -64,8 +65,7 @@ export function MainPanel({ context, isEmbedded = false, className }) {
   }
 
   return (
-    <nav
-      id="header"
+    <div
       className={cx(
         'flex-none text-black z-[100] text-sm select-none min-h-10 max-h-10',
         !isZen && !isEmbedded && 'border-b border-muted bg-lineHighlight',
@@ -109,7 +109,7 @@ export function MainPanel({ context, isEmbedded = false, className }) {
           </div>
         )}
       </div>
-    </nav>
+    </div>
   );
 }
 
@@ -123,7 +123,42 @@ export function Footer({ context, isEmbedded = false }) {
 
 function MainMenu({ context, isEmbedded = false, className }) {
   const { started, pending, isDirty, activeCode, handleTogglePlay, handleEvaluate, handleShare } = context;
-  const { isCSSAnimationDisabled } = useSettings();
+  const { isCSSAnimationDisabled, isPanelOpen, isZen } = useSettings();
+
+  useEvent('keydown', (event) => {
+    const target = event.target;
+    const isEditable =
+      target instanceof HTMLElement &&
+      (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isEditable) {
+      return;
+    }
+
+    switch (event.key.toLowerCase()) {
+      case 'p':
+        event.preventDefault();
+        handleTogglePlay();
+        break;
+      case 'u':
+        event.preventDefault();
+        handleEvaluate();
+        break;
+      case 's':
+        if (!isEmbedded) {
+          event.preventDefault();
+          handleShare();
+        }
+        break;
+      case 'm':
+        if (!isEmbedded && !isZen) {
+          event.preventDefault();
+          setIsPanelOpened(!isPanelOpen);
+        }
+        break;
+      default:
+    }
+  });
+
   return (
     <div className={cx('flex text-sm max-w-full shrink-0 overflow-hidden text-foreground px-2 h-10', className)}>
       <button
@@ -151,6 +186,11 @@ function MainMenu({ context, isEmbedded = false, className }) {
         >
           <span>share</span>
         </button>
+      )}
+      {!isEmbedded && (
+        <div className="hidden xl:flex items-center px-2 opacity-80 text-xs">
+          HOTKEYS: p play/pause, u update, s share, m menu
+        </div>
       )}
       {!isEmbedded && (
         <a
@@ -245,7 +285,7 @@ if (TAURI) {
 function PanelNav({ children, className, ...props }) {
   const settings = useSettings();
   return (
-    <nav
+    <div
       onClick={() => {
         if (!settings.isPanelOpen) {
           setIsPanelOpened(true);
@@ -256,7 +296,7 @@ function PanelNav({ children, className, ...props }) {
       {...props}
     >
       {children}
-    </nav>
+    </div>
   );
 }
 
