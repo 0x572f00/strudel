@@ -107,30 +107,24 @@ export function initEditor({ initialCode = '', onChange, onEvaluate, onStop, roo
           {
             key: 'Ctrl-Enter',
             run: () => {
-              // Toggle playback: if running, stop; otherwise evaluate.
-              if (strudelMirror?.repl?.scheduler?.started) {
-                return onStop?.() ?? true;
-              }
               // issue with referencing settings, this works more reliably
               if (strudelMirror?.isBlockBasedEvalEnabled) {
                 evalBlock(strudelMirror);
                 return true;
+              } else {
+                return onEvaluate?.();
               }
-              return onEvaluate?.() ?? true;
             },
           },
           {
             key: 'Alt-Enter',
             run: () => {
-              // Toggle playback: if running, stop; otherwise evaluate.
-              if (strudelMirror?.repl?.scheduler?.started) {
-                return onStop?.() ?? true;
-              }
               if (strudelMirror?.isBlockBasedEvalEnabled) {
                 evalBlock(strudelMirror);
                 return true;
+              } else {
+                return onEvaluate?.();
               }
-              return onEvaluate?.() ?? true;
             },
           },
           {
