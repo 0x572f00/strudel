@@ -128,6 +128,16 @@ export function initEditor({ initialCode = '', onChange, onEvaluate, onStop, roo
             },
           },
           {
+            key: 'Ctrl-p',
+            preventDefault: true,
+            run: () => onStop?.(),
+          },
+          {
+            key: 'Alt-p',
+            preventDefault: true,
+            run: () => onStop?.(),
+          },
+          {
             key: 'Ctrl-.',
             run: () => onStop?.(),
           },
