@@ -1,0 +1,37 @@
+.root {
+  display: block;
+  font-weight: 400;
+  overflow: auto;
+  font-family: inherit;
+  color: var(--foreground);
+  background: transparent;
+  scrollbar-width: none;
+}
+
+.root::-webkit-scrollbar {
+  display: none;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.number {
+  display: inline-flex;
+  width: 3ch;
+  text-align: right;
+  padding-right: 1ch;
+  user-select: none;
+  background: var(--background);
+  opacity: 0.5;
+}
+
+.content {
+  min-width: 10%;
+  width: 100%;
+  white-space: pre;
+  background: var(--lineBackground);
+  padding-left: 2ch;
+}

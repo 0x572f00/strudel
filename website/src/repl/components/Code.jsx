@@ -1,3 +1,5 @@
+import { CodeBlock } from '@src/repl/components/CodeBlock';
+
 // type Props = {
 //   containerRef:  React.MutableRefObject<HTMLElement | null>,
 //   editorRef:  React.MutableRefObject<HTMLElement | null>,
@@ -7,7 +9,7 @@ export function Code(Props) {
   const { editorRef, containerRef, init } = Props;
 
   return (
-    <section
+    <CodeBlock
       className={'code-container text-gray-100 cursor-text pb-0 overflow-auto grow z-10'}
       ref={(el) => {
         containerRef.current = el;
@@ -15,6 +17,6 @@ export function Code(Props) {
           init();
         }
       }}
-    ></section>
+    />
   );
 }
